@@ -64,7 +64,7 @@ app = Client(
 def group_time_message(client: Client, message: Message):
     if ONLY_GROUP is not None and message.chat.id != ONLY_GROUP:
         return
-    times=time_regex.findall(message.text)
+    times=time_regex.findall(message.text or message.caption)
     times = [time.replace('.',':') for time in times]
     keyboard=InlineKeyboardMarkup(
         [
