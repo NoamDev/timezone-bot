@@ -18,7 +18,7 @@ BOT_TOKEN = os.environ['BOT_TOKEN']
 USERNAME = os.environ['USERNAME']
 ONLY_GROUP = int(os.environ['ONLY_GROUP']) if 'ONLY_GROUP' in os.environ else None
 
-time_regex=re.compile('((?:[0-9]|0[0-9]|1[0-9]|2[0-3])[:.][0-5][0-9]) ?UTC', flags=re.IGNORECASE)
+time_regex=re.compile('([0-9]|0[0-9]|1[0-9]|2[0-3])(?:[:.]([0-5][0-9]))? ?(a\.?m\.?|p\.?m\.?)? ?([a-z]{2,}(?:/[a-z]{2,})?)', flags=re.IGNORECASE)
 
 def parse_timezone(text):
     try:
@@ -31,6 +31,15 @@ def parse_timezone(text):
             return tz
         except:
             return None    
+
+def first_with_basic_timezone(times):
+    for tpl in times:
+        *args,timezone = tpl
+        try:
+            tz=pytz.timezone(timezone)
+            return *args,tz
+        except:
+            pass
 
 db = Database()
 
@@ -65,16 +74,37 @@ def group_time_message(client: Client, message: Message):
     if ONLY_GROUP is not None and message.chat.id != ONLY_GROUP:
         return
     times=time_regex.findall(message.text or message.caption)
-    times = [time.replace('.',':') for time in times]
+
+    hours,minutes,am_pm,tz = first_with_basic_timezone(times)
+
+    hours = int(hours)
+    if minutes == '':
+        minutes = '00'
+    minutes = int(minutes)
+    am_pm = am_pm.lower().replace('.','')
+    if am_pm == '':
+        am_pm = None
+
+    # handle am/pm
+    if am_pm :
+        if hours>12:
+            return
+        parsed_dt = datetime.strptime(f'{hours} {am_pm}','%I %p')
+        hours = parsed_dt.hour
+    
+    now=datetime.now()
+    dt = datetime(now.year, now.month, now.day, hours, minutes)
+    utc = dt - tz.utcoffset(now)
+
     keyboard=InlineKeyboardMarkup(
         [
             [InlineKeyboardButton(
                 text='show in my local timezone',
-                callback_data=times[0]
+                callback_data=utc.strftime('%H:%M')
             )]
         ]
     )
-    message.reply_text(text=f'{times[0]} UTC', reply_markup=keyboard)
+    message.reply_text(text=f'{dt.strftime("%H:%M")} {tz.zone}', reply_markup=keyboard)
 
 @app.on_callback_query()
 def on_time_button(client: Client, callback_query: CallbackQuery):
@@ -91,7 +121,7 @@ def on_time_button(client: Client, callback_query: CallbackQuery):
         tz=pytz.timezone(preference.timezone)
         localized = dt + tz.utcoffset(dt)
 
-        callback_query.answer(f"{time} UTC is {localized.strftime('%H:%M')} in {tz.zone}", show_alert=True)
+        callback_query.answer(f"{time} UTC, which is {localized.strftime('%H:%M')} in {tz.zone}", show_alert=True)
     else:
 #        encoded_link = base64.urlsafe_b64encode(callback_query.message.link.encode('utf8')).decode('utf8')
         callback_query.answer(time, show_alert=True, url=f't.me/{USERNAME}?start=a')
