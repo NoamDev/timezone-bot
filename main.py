@@ -75,6 +75,10 @@ def group_time_message(client: Client, message: Message):
         return
     times=time_regex.findall(message.text or message.caption)
 
+    tpl = first_with_basic_timezone(times)
+    if tpl is None:
+        return
+    
     hours,minutes,am_pm,tz = first_with_basic_timezone(times)
 
     hours = int(hours)
