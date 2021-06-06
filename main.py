@@ -93,14 +93,14 @@ def on_time_button(client: Client, callback_query: CallbackQuery):
 
         callback_query.answer(f"{time} UTC is {localized.strftime('%H:%M')} in {tz.zone}", show_alert=True)
     else:
-        encoded_link = base64.urlsafe_b64encode(callback_query.message.link.encode('utf8')).decode('utf8')
-        callback_query.answer(time, show_alert=True, url=f't.me/{USERNAME}?start={encoded_link}')
+#        encoded_link = base64.urlsafe_b64encode(callback_query.message.link.encode('utf8')).decode('utf8')
+        callback_query.answer(time, show_alert=True, url=f't.me/{USERNAME}?start=a')
 
 @app.on_message(filters=filters.private & filters.command('start'))
 def on_start_command(client: Client, message: Message):
     if len(message.command) > 1:
         encoded_link=message.command[1]
-        link = base64.urlsafe_b64decode(encoded_link).decode('utf8')
+        #link = base64.urlsafe_b64decode(encoded_link).decode('utf8')
         message.reply_text(f"""Please set your timezone.
 with the command /set timezone
 for example: /set Europe/Berlin, /set Israel
