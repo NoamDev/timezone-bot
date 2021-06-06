@@ -1,0 +1,13 @@
+async-lru==1.0.2
+geographiclib==1.50
+geopy==2.1.0
+pony==0.7.14
+pyaes==1.6.1
+Pyrogram==1.2.9
+PySocks==1.7.1
+pytz==2016.10
+requests==2.13.0
+Shapely==1.7.1
+six==1.16.0
+TgCrypto==1.2.2
+tzwhere==3.0.3

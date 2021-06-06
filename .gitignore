@@ -1,0 +1,6 @@
+.env
+.venv/
+.vscode/
+*.session
+*.code-workspace
+db.sqlite
