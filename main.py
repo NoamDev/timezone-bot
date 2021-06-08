@@ -103,7 +103,7 @@ def group_time_message(client: Client, message: Message):
     keyboard=InlineKeyboardMarkup(
         [
             [InlineKeyboardButton(
-                text='show in my local timezone',
+                text='show in my local time zone',
                 callback_data=utc.strftime('%H:%M')
             )]
         ]
