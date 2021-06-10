@@ -108,7 +108,11 @@ def group_time_message(client: Client, message: Message):
             )]
         ]
     )
-    message.reply_text(text=f'{dt.strftime("%H:%M")} {tz.zone}', reply_markup=keyboard)
+    time_str=f'{dt.strftime("%H:%M")} {tz.zone}'
+    message.reply_text(text=f'''
+{dt.strftime("%H:%M")} {tz.zone}
+Brought to you by **Free TON**💎 @TONCRYSTAL''', parse_mode='markdown', reply_markup=keyboard)
+    
 
 @app.on_callback_query()
 def on_time_button(client: Client, callback_query: CallbackQuery):
