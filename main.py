@@ -148,7 +148,7 @@ then, go back to where you came from and click the button again""")
 def set_timezone(client: Client, message: Message):
     uid = message.from_user.id
     if len(message.command) > 1:
-        tz = parse_timezone(message.command[1])
+        tz = parse_timezone(' '.join(message.command[1:]))
         if tz is not None:
             with db_session():
                 preference = Preference.get(user_id=uid) or Preference(user_id=uid)
