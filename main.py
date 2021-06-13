@@ -18,7 +18,7 @@ BOT_TOKEN = os.environ['BOT_TOKEN']
 USERNAME = os.environ['USERNAME']
 ONLY_GROUP = int(os.environ['ONLY_GROUP']) if 'ONLY_GROUP' in os.environ else None
 
-time_regex=re.compile('([0-9]|0[0-9]|1[0-9]|2[0-3])(?:[:.]([0-5][0-9]))? ?(a\.?m\.?|p\.?m\.?)? ?([a-z]{2,}(?:/[a-z]{2,})?)', flags=re.IGNORECASE)
+time_regex=re.compile(r'(?<![0-9@#$%\^&*])([0-9]|0[0-9]|1[0-9]|2[0-3])(?:[:.]([0-5][0-9]))? ?(a\.?m\.?|p\.?m\.?)? ?([a-z]{2,}(?:/[a-z]{2,})?)', flags=re.IGNORECASE)
 
 def parse_timezone(text):
     try:
