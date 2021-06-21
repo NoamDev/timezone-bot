@@ -1,5 +1,5 @@
 import re
-from pony.orm.core import Entity
+from typing import List
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pony.orm import *
@@ -7,7 +7,6 @@ import pytz
 from datetime import date, datetime
 from geopy.geocoders import Nominatim
 from tzwhere import tzwhere
-import base64
 import os
 
 g=Nominatim(user_agent='localzone_bot')
@@ -32,11 +31,22 @@ def parse_timezone(text):
         except:
             return None    
 
+common_timezones_dict = {
+    'moscow': pytz.timezone('Europe/Moscow')
+}
+
+def basic_timezone(timezone: str):
+    timezone = timezone.lower()
+    if timezone in common_timezones_dict:
+        return common_timezones_dict[timezone]
+    else:
+        return pytz.timezone(timezone)
+
 def first_with_basic_timezone(times):
     for tpl in times:
         *args,timezone = tpl
         try:
-            tz=pytz.timezone(timezone)
+            tz=basic_timezone(timezone)
             return *args,tz
         except:
             pass
@@ -63,15 +73,16 @@ else:
 db.generate_mapping(create_tables=True)
 
 app = Client(
-    'my_bot',
+    ':memory:',
     bot_token=BOT_TOKEN,
     api_id=API_ID,
     api_hash=API_HASH
 )
 
 @app.on_message(filters.regex(time_regex, flags=re.IGNORECASE) & filters.group)
-def group_time_message(client: Client, message: Message):
+async def group_time_message(client: Client, message: Message):
     if ONLY_GROUP is not None and message.chat.id != ONLY_GROUP:
+        print(f"Group ID {message.chat.id} is not allowed")
         return
     times=time_regex.findall(message.text or message.caption)
 
@@ -79,7 +90,13 @@ def group_time_message(client: Client, message: Message):
     if tpl is None:
         return
     
-    hours,minutes,am_pm,tz = first_with_basic_timezone(times)
+    if bool(message.edit_date):
+        messages = await client.get_messages(chat_id=message.chat.id, reply_to_message_ids=message.message_id ,replies=-1)
+        if messages is not None:
+            for m in (m for m in messages if m.from_user.username == USERNAME):
+                m.delete()
+
+    hours,minutes,am_pm,tz = tpl
 
     hours = int(hours)
     if minutes == '':
@@ -109,7 +126,7 @@ def group_time_message(client: Client, message: Message):
         ]
     )
     time_str=f'{dt.strftime("%H:%M")} {tz.zone}'
-    message.reply_text(text=f'''
+    await message.reply_text(text=f'''
 {dt.strftime("%H:%M")} {tz.zone}
 Brought to you by **Free TON**💎 @TONCRYSTAL''', parse_mode='markdown', reply_markup=keyboard)
     
