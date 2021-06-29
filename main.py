@@ -32,7 +32,8 @@ def parse_timezone(text):
             return None    
 
 common_timezones_dict = {
-    'moscow': pytz.timezone('Europe/Moscow')
+    'moscow': pytz.timezone('Europe/Moscow'),
+    'gmt': pytz.timezone('UTC')
 }
 
 def basic_timezone(timezone: str):
