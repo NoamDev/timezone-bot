@@ -8,6 +8,7 @@ from datetime import date, datetime
 from geopy.geocoders import Nominatim
 from tzwhere import tzwhere
 import os
+from pyrogram.raw import functions
 
 g=Nominatim(user_agent='localzone_bot')
 tzwhere_instance = tzwhere.tzwhere()
@@ -19,38 +20,41 @@ ONLY_GROUP = int(os.environ['ONLY_GROUP']) if 'ONLY_GROUP' in os.environ else No
 
 time_regex=re.compile(r'(?<![0-9@#$%\^&*])([0-9]|0[0-9]|1[0-9]|2[0-3])(?:[:.]([0-5][0-9]))? ?(a\.?m\.?|p\.?m\.?)? ?([a-z]{2,}(?:/[a-z]{2,})?)', flags=re.IGNORECASE)
 
-def parse_timezone(text):
-    try:
-        tz = pytz.timezone(text)
-        return tz
-    except:
-        try:
-            place, (lat,lng) = g.geocode(text)
-            tz = pytz.timezone(tzwhere_instance.tzNameAt(lat,lng))
-            return tz
-        except:
-            return None    
-
 common_timezones_dict = {
     'moscow': pytz.timezone('Europe/Moscow'),
-    'gmt': pytz.timezone('UTC')
+    'gmt': pytz.timezone('UTC'),
+
 }
 
 def basic_timezone(timezone: str):
     timezone = timezone.lower()
     if timezone in common_timezones_dict:
         return common_timezones_dict[timezone]
+    for t in [timezone.lower(), timezone.upper(), timezone.capitalize()]:
+        try:
+            return pytz.timezone(t)
+        except:
+            pass
+
+def parse_timezone(text):
+    tz = basic_timezone(text)
+    if tz is not None:
+        return tz
     else:
-        return pytz.timezone(timezone)
+        try:
+            place, (lat,lng) = g.geocode(text)
+            tz = pytz.timezone(tzwhere_instance.tzNameAt(lat,lng))
+            return tz
+        except:
+            return None 
 
 def first_with_basic_timezone(times):
     for tpl in times:
         *args,timezone = tpl
-        try:
-            tz=basic_timezone(timezone)
+        tz=basic_timezone(timezone)
+        if tz is not None:
             return *args,tz
-        except:
-            pass
+
 
 db = Database()
 
@@ -92,10 +96,19 @@ async def group_time_message(client: Client, message: Message):
         return
     
     if bool(message.edit_date):
-        messages = await client.get_messages(chat_id=message.chat.id, reply_to_message_ids=message.message_id ,replies=-1)
-        if messages is not None:
-            for m in (m for m in messages if m.from_user.username == USERNAME):
-                m.delete()
+        peer = await client.resolve_peer(message.chat.id)
+        r = await client.send(
+            functions.messages.GetMessagesViews(
+                peer=peer,
+                id=[message.message_id],
+                increment=False
+            )
+        )
+        print(r)
+        # if messages is not None:
+        #     for m in messages:
+        #         if m.from_user.username == USERNAME:
+        #             m.delete()
 
     hours,minutes,am_pm,tz = tpl
 
