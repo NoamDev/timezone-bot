@@ -23,6 +23,8 @@ time_regex=re.compile(r'(?<![0-9@#$%\^&*])([0-9]|0[0-9]|1[0-9]|2[0-3])(?:[:.]([0
 common_timezones_dict = {
     'moscow': pytz.timezone('Europe/Moscow'),
     'gmt': pytz.timezone('UTC'),
+    'cst': pytz.timezone('Asia/Shanghai'),
+    'sst': pytz.timezone('Asia/Singapore')
 
 }
 
