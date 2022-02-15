@@ -12,9 +12,6 @@ from pyrogram.raw import functions
 
 g=Nominatim(user_agent='localzone_bot')
 tf = TimezoneFinder()
-API_ID=os.environ['API_ID']
-API_HASH=os.environ['API_HASH']
-BOT_TOKEN = os.environ['BOT_TOKEN']
 USERNAME = os.environ['USERNAME']
 ONLY_GROUP = int(os.environ['ONLY_GROUP']) if 'ONLY_GROUP' in os.environ else None
 
