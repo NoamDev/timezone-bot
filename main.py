@@ -6,12 +6,12 @@ from pony.orm import *
 import pytz
 from datetime import date, datetime
 from geopy.geocoders import Nominatim
-from tzwhere import tzwhere
+from timezonefinder import TimezoneFinder
 import os
 from pyrogram.raw import functions
 
 g=Nominatim(user_agent='localzone_bot')
-tzwhere_instance = tzwhere.tzwhere()
+tf = TimezoneFinder()
 API_ID=os.environ['API_ID']
 API_HASH=os.environ['API_HASH']
 BOT_TOKEN = os.environ['BOT_TOKEN']
@@ -43,12 +43,12 @@ def parse_timezone(text):
     if tz is not None:
         return tz
     else:
-        try:
-            place, (lat,lng) = g.geocode(text)
-            tz = pytz.timezone(tzwhere_instance.tzNameAt(lat,lng))
-            return tz
-        except:
-            return None 
+        location = g.geocode(text, exactly_one=True)
+        if location is None:
+            return None
+        tz = pytz.timezone(tf.timezone_at(lat=location.latitude,lng=location.longitude))
+        return tz
+
 
 def first_with_basic_timezone(times):
     for tpl in times:
@@ -80,10 +80,7 @@ else:
 db.generate_mapping(create_tables=True)
 
 app = Client(
-    ':memory:',
-    bot_token=BOT_TOKEN,
-    api_id=API_ID,
-    api_hash=API_HASH
+    "bot"
 )
 
 @app.on_message(filters.regex(time_regex, flags=re.IGNORECASE) & filters.group)
