@@ -138,7 +138,7 @@ async def group_time_message(client: Client, message: Message):
     time_str=f'{dt.strftime("%H:%M")} {tz.zone}'
     await message.reply_text(text=f'''
 {dt.strftime("%H:%M")} {tz.zone}
-Brought to you by **Everscale**💎 @EVERSCALE_comm''', parse_mode='markdown', reply_markup=keyboard)
+Brought to you by **Everscale** @everscale''', parse_mode='markdown', reply_markup=keyboard)
     
 
 @app.on_callback_query()
